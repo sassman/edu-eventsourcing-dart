@@ -78,6 +78,25 @@ class Address {
       String postalCode, String countryCode) {
     return Address._(street, houseNumber, city, postalCode, countryCode);
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is Address &&
+              runtimeType == other.runtimeType &&
+              street == other.street &&
+              houseNumber == other.houseNumber &&
+              city == other.city &&
+              postalCode == other.postalCode &&
+              countryCode == other.countryCode;
+
+  @override
+  int get hashCode =>
+      street.hashCode ^
+      houseNumber.hashCode ^
+      city.hashCode ^
+      postalCode.hashCode ^
+      countryCode.hashCode;
 }
 
 /// aggregate root Person
@@ -119,26 +138,52 @@ class Person {
     _apply(e);
   }
 
+  void changeAddress(Address address) {
+    if(_homeAddress == address) {
+      return;
+    }
+    DomainEvent e = null;
+    if(_homeAddress == null) {
+      e = AddressAdded.of(address);
+    } else {
+      e = AddressChanged.of(address);
+    }
+    _recordEvent(e);
+    _apply(e);
+  }
+
   void _recordEvent(DomainEvent e) => _recordedEvents.add(e);
 
   void _apply(DomainEvent e) {
     if (e.payload is PersonRegistered) {
-      _whenPersonRegistered(e);
+      _whenPersonRegistered(e.payload);
     }
     if (e.payload is EmailAddressConfirmed) {
-      _whenEmailAddressConfirmed(e);
+      _whenEmailAddressConfirmed(e.payload);
+    }
+    if (e.payload is AddressAdded) {
+      _whenAddressAdded(e.payload);
+    }
+    if (e.payload is AddressChanged) {
+      _whenAddressChanged(e.payload);
     }
   }
 
-  void _whenPersonRegistered(DomainEvent<PersonRegistered> e) {
-    _id = e.payload.id;
-    _name = e.payload.name;
-    _workMail = e.payload.email;
+  void _whenPersonRegistered(PersonRegistered e) {
+    _id = e.id;
+    _name = e.name;
+    _workMail = e.email;
   }
 
-  void _whenEmailAddressConfirmed(DomainEvent<EmailAddressConfirmed> e) {
-    if (e.payload.id == _id) {
-      _workMail = _workMail.confirm();
-    }
+  void _whenEmailAddressConfirmed(EmailAddressConfirmed e) {
+    _workMail = _workMail.confirm();
+  }
+
+  void _whenAddressAdded(AddressAdded e) {
+    _homeAddress = e.address;
+  }
+
+  void _whenAddressChanged(AddressChanged e) {
+    _homeAddress = e.address;
   }
 }

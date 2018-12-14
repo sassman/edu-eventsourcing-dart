@@ -70,6 +70,11 @@ void main() {
       person.confirmEmail();
     }
 
+    givenPersonWithAddress() {
+      givenConfirmedPerson();
+      person.changeAddress(Address.of('zugspitzstraße', '1', 'Munich', '91283', 'DE'));
+    }
+
     test('register a new Person', () {
       givenRegisteredPerson();
       expect(person, TypeMatcher<Person>());
@@ -99,6 +104,28 @@ void main() {
       var p = Person.reconstitute(person.recordedEvents);
       p.confirmEmail();
       expect(p.recordedEvents.isEmpty, isTrue);
+    });
+
+    test('adding an address', () {
+      givenConfirmedPerson();
+
+      person.changeAddress(Address.of('zugspitzstraße', '1', 'Munich', '91283', 'DE'));
+      expect(person.recordedEvents.length, equals(3));
+      expect(person.recordedEvents[2],
+          TypeMatcher<DomainEvent<AddressAdded>>());
+    });
+
+    test('changing an address', () {
+      givenPersonWithAddress();
+
+      person.changeAddress(Address.of('Zugspitzstraße', '1', 'Pullach', '82049', 'DE'));
+      expect(person.recordedEvents.length, equals(4));
+      expect(person.recordedEvents[3],
+          TypeMatcher<DomainEvent<AddressChanged>>());
+
+      // change the address to the same one will not change anything
+      person.changeAddress(Address.of('Zugspitzstraße', '1', 'Pullach', '82049', 'DE'));
+      expect(person.recordedEvents.length, equals(4));
     });
   });
 }

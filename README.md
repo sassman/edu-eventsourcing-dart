@@ -15,3 +15,32 @@ What we will try to implement
 * some domain events: PersonRegistered, PersonEmailAddressConfirmed, PersonAddressAdded, PersonAddressChanged
 * the methods in the Person aggregate which will cause the above events
 * we'll try to work test-driven as much as possible
+
+** Code notes
+
+where we see how nice dart is and how less code is required get things done :)
+
+```bash
+.
+├── README.md
+├── analysis_options.yaml
+├── lib
+│   ├── event_sourcing_workshop.dart
+│   └── src
+│       ├── events.dart
+│       └── models.dart
+├── pubspec.lock
+├── pubspec.yaml
+└── test
+    ├── events_test.dart
+    └── models_test.dart
+```
+
+lib/src/events.dart contains all `DomainEvents`
+lib/src/models.dart contains `ValueObjects` and `Aggregates`
+
+run the tests by:
+
+```bash
+pub run test
+```

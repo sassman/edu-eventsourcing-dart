@@ -32,3 +32,23 @@ class EmailAddressConfirmed {
     return DomainEvent(EmailAddressConfirmed._(id));
   }
 }
+
+class AddressChanged {
+  final Address address;
+
+  AddressChanged._(this.address);
+
+  static DomainEvent<AddressChanged> of(Address address) {
+    return DomainEvent(AddressChanged._(address));
+  }
+}
+
+class AddressAdded {
+  final Address address;
+
+  AddressAdded._(this.address);
+
+  static DomainEvent<AddressAdded> of(Address address) {
+    return DomainEvent(AddressAdded._(address));
+  }
+}
