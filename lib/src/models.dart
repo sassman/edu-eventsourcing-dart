@@ -8,23 +8,26 @@ class FamilyNameIsEmpty implements Exception {}
 /// value object Name
 class Name {
   /// public but immutable
-  final String givenName;
-  final String familyName;
+  final String givenName, familyName;
 
-  /// private constructor
-  Name._(this.givenName, this.familyName);
+  /// named constructor without a body
+  const Name.newWithoutValidation(this.givenName, this.familyName);
 
-  /// factory method that takes care of validation
-  static Name ofGivenAndFamilyName(String givenName, String familyName) {
-    final name = Name._(givenName, familyName);
-    name._validate();
-    return name;
+  /// named constructor is like a factory method
+  Name.ofGivenAndFamilyName(this.givenName, this.familyName) {
+    _validate();
   }
 
-  /// factory method that does no validation
-  static Name newWithoutValidation(String givenName, String familyName) {
-    return Name._(givenName, familyName);
-  }
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Name &&
+          runtimeType == other.runtimeType &&
+          givenName == other.givenName &&
+          familyName == other.familyName;
+
+  @override
+  int get hashCode => givenName.hashCode ^ familyName.hashCode;
 
   /// validation method
   void _validate() {
@@ -41,12 +44,17 @@ class Name {
 class Id {
   final String id;
 
-  Id._(this.id);
+  Id.generate() : id = Uuid().v4();
 
-  static Id generate() {
-    final uuid = Uuid();
-    return Id._(uuid.v4());
-  }
+  const Id.newWithoutValidation(this.id);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Id && runtimeType == other.runtimeType && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 /// value object for an EmailAddress
@@ -54,12 +62,25 @@ class EmailAddress {
   final String email;
   final bool isConfirmed;
 
-  EmailAddress._(this.email, this.isConfirmed);
+  const EmailAddress._(this.email, this.isConfirmed);
+
+  const EmailAddress.of(this.email) : isConfirmed = false;
 
   EmailAddress confirm() => EmailAddress._(email, true);
 
-  static EmailAddress of(String email) {
-    return EmailAddress._(email, false);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EmailAddress &&
+          runtimeType == other.runtimeType &&
+          email == other.email;
+
+  @override
+  int get hashCode => email.hashCode;
+
+  @override
+  String toString() {
+    return '{email: $email, isConfirmed: $isConfirmed}';
   }
 }
 
@@ -71,24 +92,19 @@ class Address {
   final String postalCode;
   final String countryCode;
 
-  Address._(this.street, this.houseNumber, this.city, this.postalCode,
+  const Address.of(this.street, this.houseNumber, this.city, this.postalCode,
       this.countryCode);
-
-  static Address of(String street, String houseNumber, String city,
-      String postalCode, String countryCode) {
-    return Address._(street, houseNumber, city, postalCode, countryCode);
-  }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Address &&
-              runtimeType == other.runtimeType &&
-              street == other.street &&
-              houseNumber == other.houseNumber &&
-              city == other.city &&
-              postalCode == other.postalCode &&
-              countryCode == other.countryCode;
+      other is Address &&
+          runtimeType == other.runtimeType &&
+          street == other.street &&
+          houseNumber == other.houseNumber &&
+          city == other.city &&
+          postalCode == other.postalCode &&
+          countryCode == other.countryCode;
 
   @override
   int get hashCode =>
@@ -123,7 +139,7 @@ class Person {
 
   static Person reconstitute(List<DomainEvent> events) {
     final p = Person._();
-    for(DomainEvent e in events) {
+    for (DomainEvent e in events) {
       p._apply(e);
     }
     return p;
@@ -139,15 +155,24 @@ class Person {
   }
 
   void changeAddress(Address address) {
-    if(_homeAddress == address) {
+    if (_homeAddress == address) {
       return;
     }
     DomainEvent e = null;
-    if(_homeAddress == null) {
+    if (_homeAddress == null) {
       e = AddressAdded.of(address);
     } else {
       e = AddressChanged.of(address);
     }
+    _recordEvent(e);
+    _apply(e);
+  }
+
+  void changeName(Name name) {
+    if (name == _name) {
+      return;
+    }
+    final DomainEvent<NameChanged> e = NameChanged.of(name);
     _recordEvent(e);
     _apply(e);
   }
@@ -167,6 +192,9 @@ class Person {
     if (e.payload is AddressChanged) {
       _whenAddressChanged(e.payload);
     }
+    if (e.payload is NameChanged) {
+      _whenNameChanged(e.payload);
+    }
   }
 
   void _whenPersonRegistered(PersonRegistered e) {
@@ -185,5 +213,9 @@ class Person {
 
   void _whenAddressChanged(AddressChanged e) {
     _homeAddress = e.address;
+  }
+
+  void _whenNameChanged(NameChanged e) {
+    _name = e.name;
   }
 }

@@ -31,6 +31,10 @@ void main() {
       expect(Name.newWithoutValidation('', 'Assmann').familyName,
           equals('Assmann'));
     });
+
+    test('equality', () {
+      expect(name, equals(Name.newWithoutValidation('Sven', 'Assmann')));
+    });
   });
 
   group('Id', () {
@@ -38,11 +42,27 @@ void main() {
       var id = Id.generate();
       expect(id.id, contains('-'));
     });
+
+    test('equality', () {
+      var id = Id.generate();
+      expect(id, equals(Id.newWithoutValidation(id.id)));
+    });
   });
 
   group('EmailAdress', () {
     test('a one', () {
       expect(EmailAddress.of('sven.assmann@sixt.com').email, contains('@'));
+    });
+
+    test('equality', () {
+      final mail = EmailAddress.of('sven.assmann@sixt.com');
+      expect(mail, equals(EmailAddress.of('sven.assmann@sixt.com')));
+    });
+
+    test('equality for one confirmed', () {
+      final mail = EmailAddress.of('sven.assmann@sixt.com').confirm();
+
+      expect(mail, equals(EmailAddress.of('sven.assmann@sixt.com')));
     });
   });
 
@@ -52,6 +72,12 @@ void main() {
       expect(work.countryCode, contains('DE'));
       expect(work.street, contains('straße'));
       expect(work.houseNumber, contains('1'));
+    });
+
+    test('equality', () {
+      final work = Address.of('Zugspitzstraße', '1', 'Pullach', '91123', 'DE');
+      final alsoWork = Address.of('Zugspitzstraße', '1', 'Pullach', '91123', 'DE');
+      expect(work, equals(alsoWork));
     });
   });
 
@@ -126,6 +152,18 @@ void main() {
       // change the address to the same one will not change anything
       person.changeAddress(Address.of('Zugspitzstraße', '1', 'Pullach', '82049', 'DE'));
       expect(person.recordedEvents.length, equals(4));
+    });
+
+    test('changing name', () {
+      givenConfirmedPerson();
+
+      person.changeName(Name.newWithoutValidation('Sven', 'Aßmann'));
+      expect(person.recordedEvents.length, equals(3));
+      expect(person.recordedEvents[2],
+          TypeMatcher<DomainEvent<NameChanged>>());
+
+      person.changeName(Name.newWithoutValidation('Sven', 'Aßmann'));
+      expect(person.recordedEvents.length, equals(3));
     });
   });
 }

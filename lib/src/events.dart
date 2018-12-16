@@ -14,7 +14,7 @@ class PersonRegistered {
 
   PersonRegistered._(this.id, this.name, this.email);
 
-  static of(Id id, Name name, EmailAddress email) {
+  static DomainEvent<PersonRegistered> of(Id id, Name name, EmailAddress email) {
     return DomainEvent(PersonRegistered._(id, name, email));
   }
 
@@ -28,7 +28,7 @@ class EmailAddressConfirmed {
 
   EmailAddressConfirmed._(this.id);
 
-  static of(Id id) {
+  static DomainEvent<EmailAddressConfirmed> of(Id id) {
     return DomainEvent(EmailAddressConfirmed._(id));
   }
 }
@@ -50,5 +50,15 @@ class AddressAdded {
 
   static DomainEvent<AddressAdded> of(Address address) {
     return DomainEvent(AddressAdded._(address));
+  }
+}
+
+class NameChanged {
+  final Name name;
+
+  NameChanged._(this.name);
+
+  static DomainEvent<NameChanged> of(Name name) {
+    return DomainEvent(NameChanged._(name));
   }
 }
