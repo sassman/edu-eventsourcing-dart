@@ -37,6 +37,7 @@ where we see how nice dart is and how less code is required get things done :)
 ```
 
 lib/src/events.dart contains all `DomainEvents`
+
 lib/src/models.dart contains `ValueObjects` and `Aggregates`
 
 run the tests by:
